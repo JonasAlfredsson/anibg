@@ -24,7 +24,11 @@ function getVideoFileResolution () {
 function getScreenResolution () {
     # Get the screen's resolution as a sting like: 1920x1080
     # NOTE: This will not work if you are using Wayland.
-    screenResolution="`xdpyinfo | grep dimensions | sed -r 's/^[^0-9]*([0-9]+x[0-9]+).*$/\1/'`"
+    if [ "$limitToPrimaryMonitor" = "true" ]; then
+        screenResolution="`xrandr --current | sed -n 's/.* connected primary \([0-9]*\)x\([0-9]*\)+.*/\1x\2/p'`"
+    else
+        screenResolution="`xdpyinfo | grep dimensions | sed -r 's/^[^0-9]*([0-9]+x[0-9]+).*$/\1/'`"
+    fi
     # Extract the horizontal and vertical components.
     screenResX="`echo $screenResolution | cut -d 'x' -f 1`"
     screenResY="`echo $screenResolution | cut -d 'x' -f 2`"

@@ -12,6 +12,11 @@ dp2_conf="~/.config/devilspie2/MPV Wallpaper.lua"
 # Options: true/false
 automaticResolution=true
 
+# If there are more than 1 monitor this script will stretch the wallpaper over
+# both, and that might be undesirable. If you want to limit the background to
+# the primary monitor set this to "true".
+limitToPrimaryMonitor=true
+
 # Choose a hardware decoder. Which type you can use depends on your hardware,
 # but it will significantly reduce the load on the system of one can be used.
 # Options: none/intel/nvidia/auto
