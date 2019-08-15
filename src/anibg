@@ -1,0 +1,108 @@
+#!/bin/bash
+set -e
+################################################################################
+######                           USER SETTINGS                            ######
+################################################################################
+# Path to the devilspie2 config file for MPV.
+dp2_conf="~/.config/devilspie2/MPV Wallpaper.lua"
+
+# If you want this script to automatically calculate the resolution, so that
+# the video file fills the entire screen, you should set this to "true".
+# Otherwise you will have to manually edit the config file.
+# Options: true/false
+automaticResolution=true
+
+# Choose a hardware decoder. Which type you can use depends on your hardware,
+# but it will significantly reduce the load on the system of one can be used.
+# Options: none/intel/nvidia/auto
+hwDecoder="auto"
+
+# Choose what scaler algorithm will be used when it is necessary to resize the
+# video feed. Slower scalers produce better results but might be too heavy on
+# your system
+# Options: fast/medium/slow
+scaler="medium"
+
+################################################################################
+######                  SCRIPT STUFF - MAYBE DON'T TOUCH                  ######
+################################################################################
+# Catch the first input argument and store it as the "video_file" to work with,
+# as well as its extension.
+video_file=$1
+ext=${video_file##*.}
+
+# `cd` to the directory which contains the current script being executed (or
+# sourced), get the working directory with `pwd`, and source a file called
+# "utils" which contain all our fun tools we would like to use.
+. "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/utils
+
+# Verify that the devilspie2 config file actually exist.
+checkConfigPath
+
+# Check if devilspie2 is running, and start it if so is not the case.
+if ! pgrep -x devilspie2 > /dev/null
+then
+    devilspie2 &
+fi
+
+# Calculate the best resolution and position for the MPV window (if enabled).
+if [ "$automaticResolution" = "true" ]; then
+    setFillEntireScreen
+fi
+
+# Construct the desired call to MPV to play the video file.
+mpv_cmd="nohup" #  Ignore the HUP (hangup) signal.
+mpv_cmd+=" mpv '$1'" # Give MPV the video file.
+mpv_cmd+=" --no-audio" # Disable audio.
+mpv_cmd+=" --loop" # Make the video file loop for eternity.
+mpv_cmd+=" --no-input-default-bindings" # Disable any key bindings used by MPV.
+mpv_cmd+=" --no-osc" # Disable the on-screen-controller.
+mpv_cmd+=" --title=\"MPV Wallpaper\"" # Title of the MPV Window (Must be the
+                                      # same as what is in the "dp2_conf" file).
+case "$hwDecoder" in
+    none)
+        # Force software decoding.
+        mpv_cmd+=" --hwdec=no"
+        ;;
+    auto)
+        # Let MPV try to find the best combination by itself.
+        mpv_cmd+=" --hwdec=auto"
+        ;;
+    intel)
+        # Use the Intel hardware decoder.
+        mpv_cmd+=" --hwdec=vaapi --vo=vaapi"
+        ;;
+    nvidia)
+        # Use the Nvidia hardware decoder.
+        mpv_cmd+=" --hwdec=vdpau --vo=vdpau"
+        ;;
+    *)
+        # Default to automatic detection.
+        echo "Unknown hardware decoder option, defaulting to 'auto'."
+        mpv_cmd+=" --hwdec=auto"
+        ;;
+esac
+case "$scaler" in
+    fast)
+        # Fastest, very low quality.
+        mpv_cmd+=" --scale=bilinear"
+        ;;
+    medium)
+        # Mid quality and speed.
+        mpv_cmd+=" --scale=spline36"
+        ;;
+    slow)
+        # If your hardware can run it, this is probably what you should use.
+        mpv_cmd+=" --scale=ewa_lanczossharp"
+        ;;
+    *)
+        # Default for compatibility reasons.
+        echo "Unknown scaler option, defaulting to 'bilinear'."
+        mpv_cmd+=" --scale=bilinear"
+        ;;
+esac
+mpv_cmd+=" >/dev/null 2>&1" # Redirect any output.
+mpv_cmd+=" &" # Detach from this script.
+
+# Execute command
+eval $mpv_cmd
