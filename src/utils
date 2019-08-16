@@ -2,6 +2,11 @@
 # This file will be sourced by the main `anibg.sh` script, and here you will
 # find any helper functions that are used.
 
+# Depending on the locale of the shell, the `printf` command may fail when
+# rounding values since it get a "," instead of a "." as a decimal separator.
+# Therefore we set it to the American locale, for numbers, during this script.
+export LC_NUMERIC="en_US.UTF-8"
+
 function checkConfigPath () {
     # Sanitize the path of the devilspie2 config file a bit by expanding '~' if
     # it exists in beginning.
