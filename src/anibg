@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+: ${DEBUG:=0} # Enable debug messages by prepending DEBUG=1
 ################################################################################
 ######                           USER SETTINGS                            ######
 ################################################################################
@@ -26,78 +27,91 @@ scaler="medium"
 ################################################################################
 ######                  SCRIPT STUFF - MAYBE DON'T TOUCH                  ######
 ################################################################################
-# Catch the first input argument and store it as the "video_file" to work with,
-# as well as its extension.
-video_file=$1
-ext=${video_file##*.}
-
 # `cd` to the directory which contains the current script being executed (or
 # sourced), get the working directory with `pwd`, and source a file called
 # "utils" which contain all our fun tools we would like to use.
 . "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/utils
 
+# Catch the first input argument and store it as the "video_file" to work with,
+# as well as its extension.
+video_file=$1
+ext=${video_file##*.}
+debug "Targeting video file '${video_file}', with extension '${ext}'"
+
 # Verify that the devilspie2 config file actually exist.
 checkConfigPath
 
 # Check if devilspie2 is running, and start it if so is not the case.
-if ! pgrep -x devilspie2 > /dev/null
-then
+if ! pgrep -x devilspie2 > /dev/null; then
+    info "Starting 'devilspie2'"
     devilspie2 &
+else
+    debug "'devilspie2' is already running"
 fi
 
 # Calculate the best resolution and position for the MPV window (if enabled).
-if [ "$automaticResolution" = "true" ]; then
+if [ "${automaticResolution}" = "true" ]; then
+    info "Automatic resolution is enabled"
     setFillEntireScreen
+else
+    info "Automatic resolution is disabled"
 fi
 
 # Construct the desired call to MPV to play the video file.
 mpv_cmd="nohup" #  Ignore the HUP (hangup) signal.
-mpv_cmd+=" mpv '$1'" # Give MPV the video file.
+mpv_cmd+=" mpv '${video_file}'" # Give MPV the video file.
 mpv_cmd+=" --no-audio" # Disable audio.
 mpv_cmd+=" --loop" # Make the video file loop for eternity.
 mpv_cmd+=" --no-input-default-bindings" # Disable any key bindings used by MPV.
 mpv_cmd+=" --no-osc" # Disable the on-screen-controller.
 mpv_cmd+=" --title=\"MPV Wallpaper\"" # Title of the MPV Window (Must be the
                                       # same as what is in the "dp2_conf" file).
-case "$hwDecoder" in
+case "${hwDecoder}" in
     none)
         # Force software decoding.
+        debug "Using 'software' decoder"
         mpv_cmd+=" --hwdec=no"
         ;;
     auto)
         # Let MPV try to find the best combination by itself.
+        debug "Using 'automatic' decoder"
         mpv_cmd+=" --hwdec=auto"
         ;;
     intel)
         # Use the Intel hardware decoder.
+        debug "Using 'Intel' decoder"
         mpv_cmd+=" --hwdec=vaapi --vo=vaapi"
         ;;
     nvidia)
         # Use the Nvidia hardware decoder.
+        debug "Using 'Nvidia' decoder"
         mpv_cmd+=" --hwdec=vdpau --vo=vdpau"
         ;;
     *)
         # Default to automatic detection.
-        echo "Unknown hardware decoder option, defaulting to 'auto'."
+        warning "Unknown hardware decoder option, defaulting to 'auto'"
         mpv_cmd+=" --hwdec=auto"
         ;;
 esac
-case "$scaler" in
+case "${scaler}" in
     fast)
         # Fastest, very low quality.
+        debug "Using 'fast' scaler"
         mpv_cmd+=" --scale=bilinear"
         ;;
     medium)
         # Mid quality and speed.
+        debug "Using 'medium' scaler"
         mpv_cmd+=" --scale=spline36"
         ;;
     slow)
         # If your hardware can run it, this is probably what you should use.
+        debug "Using 'slow' scaler"
         mpv_cmd+=" --scale=ewa_lanczossharp"
         ;;
     *)
         # Default for compatibility reasons.
-        echo "Unknown scaler option, defaulting to 'bilinear'."
+        warning "Unknown scaler option, defaulting to 'fast'"
         mpv_cmd+=" --scale=bilinear"
         ;;
 esac
@@ -105,4 +119,6 @@ mpv_cmd+=" >/dev/null 2>&1" # Redirect any output.
 mpv_cmd+=" &" # Detach from this script.
 
 # Execute command
-eval $mpv_cmd
+debug "Full MPV command: '${mpv_cmd}'"
+info "Setting '${video_file##*/}' as a living background"
+eval ${mpv_cmd}

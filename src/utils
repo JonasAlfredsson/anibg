@@ -7,23 +7,41 @@
 # Therefore we set it to the American locale, for numbers, during this script.
 export LC_NUMERIC="en_US.UTF-8"
 
+function debug () {
+    # Set DEBUG=1 in order to print debug messages.
+    if [ 1 = ${DEBUG} ]; then
+        echo "[DEBUG] $1"
+    fi
+}
+
+function info () {
+    echo "[INFO] $1"
+}
+
+function warning () {
+    echo "[WARN] $1"
+}
+
 function checkConfigPath () {
     # Sanitize the path of the devilspie2 config file a bit by expanding '~' if
     # it exists in beginning.
     dp2_conf="${dp2_conf/#\~/$HOME}"
 
-    if [ ! -f "$dp2_conf" ]; then
-        echo "The config file '$dp2_conf' was not found! Exiting."
+    if [ ! -f "${dp2_conf}" ]; then
+        warning "The config file '${dp2_conf}' was not found! Exiting..."
         exit 1;
+    else
+        debug "Found the config file '${dp2_conf}'"
     fi
 }
 
 function getVideoFileResolution () {
     # Gets the resolution of the "video_file" as a sting like: 1920x1021
-    fileResolution="`ffmpeg -i "$video_file" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
+    fileResolution="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
     # Extract the horizontal and vertical components.
-    fileResX="`echo $fileResolution | cut -d 'x' -f 1`"
-    fileResY="`echo $fileResolution | cut -d 'x' -f 2`"
+    fileResX="`echo ${fileResolution} | cut -d 'x' -f 1`"
+    fileResY="`echo ${fileResolution} | cut -d 'x' -f 2`"
+    debug "File resolution: ${fileResX}x${fileResY}"
 }
 
 function getScreenResolution () {
@@ -31,58 +49,63 @@ function getScreenResolution () {
     # NOTE: This will not work if you are using Wayland.
     screenResolution="`xdpyinfo | grep dimensions | sed -r 's/^[^0-9]*([0-9]+x[0-9]+).*$/\1/'`"
     # Extract the horizontal and vertical components.
-    screenResX="`echo $screenResolution | cut -d 'x' -f 1`"
-    screenResY="`echo $screenResolution | cut -d 'x' -f 2`"
+    screenResX="`echo ${screenResolution} | cut -d 'x' -f 1`"
+    screenResY="`echo ${screenResolution} | cut -d 'x' -f 2`"
+    debug "Screen resolution: ${screenResX}x${screenResY}"
 }
 
 function setWindowSize () {
     # Edit the line in the devilspie2 config file that defines window size.
-    sed -i 's/^\([[:blank:]]*\)set_window_geometry2.*$/\1set_window_geometry2(0,0,'"$resX,$resY"');/' "$dp2_conf"
+    debug "Setting MPV window size to ${resX}x${resY}"
+    sed -i 's/^\([[:blank:]]*\)set_window_geometry2.*$/\1set_window_geometry2(0,0,'"${resX},${resY}"');/' "${dp2_conf}"
 }
 
 function setWindowPosition () {
     # Edit the line in the devilspie2 config file that defines window position.
-    sed -i 's/^\([[:blank:]]*\)set_window_position2.*$/\1set_window_position2('"$shiftX,$shiftY"');/' "$dp2_conf"
+    debug "Setting MPV window shift to (${shiftX},${shiftY})"
+    sed -i 's/^\([[:blank:]]*\)set_window_position2.*$/\1set_window_position2('"${shiftX},${shiftY}"');/' "${dp2_conf}"
 }
 
 function calculateFillEntireScreenScaling () {
     # Calculate the ratios between the screen's and the video_file's resolution
     # in order to determine how the MPV window should be resized to allow the
     # video to cover the entire screen.
-    xDiff=`bc -l <<< $screenResX/$fileResX`
-    yDiff=`bc -l <<< $screenResY/$fileResY`
-
+    xDiff=`bc -l <<< ${screenResX}/${fileResX}`
+    yDiff=`bc -l <<< ${screenResY}/${fileResY}`
+    debug "Scaling difference is X:`printf '%.3f' ${xDiff}` and Y:`printf '%.3f' ${yDiff}`"
     # Compare and see which axis need to be scaled up the most in order to fill
     # the entire screen.
-    x_scale_largest=$( bc <<<  $yDiff'<'$xDiff )
-    if [ $x_scale_largest = 1 ] ; then
+    x_scale_largest=$( bc <<<  ${yDiff}'<'${xDiff} )
+    if [ ${x_scale_largest} = 1 ] ; then
         # If the difference in the X-axis is the largest, scale after that.
-        resX=`bc <<< $fileResX*$xDiff`
-        resY=`bc <<< $fileResY*$xDiff`
+        debug "Scaling based on the X-axis"
+        resX=`bc <<< ${fileResX}*${xDiff}`
+        resY=`bc <<< ${fileResY}*${xDiff}`
     else
         # If the difference in the Y-axis is the largest, scale after that.
-        resX=`bc <<< $fileResX*$yDiff`
-        resY=`bc <<< $fileResY*$yDiff`
+        debug "Scaling based on the Y-axis"
+        resX=`bc <<< ${fileResX}*${yDiff}`
+        resY=`bc <<< ${fileResY}*${yDiff}`
     fi
 
     # Round up to the next integer (this will yield the best results).
-    resX=`printf "%.0f\\n" $resX`
-    resY=`printf "%.0f\\n" $resY`
+    resX=`printf "%.0f\\n" ${resX}`
+    resY=`printf "%.0f\\n" ${resY}`
 }
 
 function calculateCenteringOfWindow () {
     # If calculateFillEntireScreenScaling() was run before this, it might be
     # necessary to shift where the top left corner of the window is placed, in
     # order for the video to be centered in relation to the screen.
-    if [ $x_scale_largest = 1 ] ; then
+    if [ ${x_scale_largest} = 1 ] ; then
         # If the difference in the X-axis is was the largest, shift the video
         # in the Y-direction since that will now be off center.
         shiftX="0"
-        shiftY=$(( -($resY - $screenResY)/2 ))
+        shiftY=$(( -(${resY} - ${screenResY})/2 ))
     else
         # If the difference in the Y-axis is was the largest, shift the video
         # in the X-direction since that will now be off center.
-        shiftX=$(( -($resX - $screenResX)/2 ))
+        shiftX=$(( -(${resX} - ${screenResX})/2 ))
         shiftY="0"
     fi
 }
@@ -91,12 +114,10 @@ function setFillEntireScreen () {
     # Get the resolutions of both the "video_file" and the screen.
     getVideoFileResolution
     getScreenResolution
-
     # Calculate the required window size in order to allow the video to fill up
     # the entire screen, and then set this result in the config file.
     calculateFillEntireScreenScaling
     setWindowSize
-
     # For a final touch; the image might be off center, so we align it.
     # It will probably still be a pixel or two off the perfect center, because
     # rounding up to integers, however, the picture should still cover the
