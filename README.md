@@ -1,6 +1,6 @@
 # anibg
 A script that will automatically resize a window of MPV to a resolution that
-will make the video cover the entire screen, and then move this window to the
+will make it cover the entire computer screen, and then move this window to the
 same rendering layer as the desktop background image, in order to make it a
 living background. The scaling of the video file will be done so the aspect
 ratio is maintained, and the result will be centered in relation to the screen.
@@ -11,7 +11,7 @@ ratio is maintained, and the result will be centered in relation to the screen.
 This project was created after I got inspired by a [Reddit post][14] made by
 [`waicool20`][15], who successfully managed to put a MPV window as a living
 background image. However, I found it rudimentary, and it used the old
-`devilspie`, so I took it upon myself to modernize it and make so that is
+`devilspie`, so I took it upon myself to modernize it and make so that it
 automatically scaled the video to appropriate sizes.
 
 
@@ -19,7 +19,7 @@ automatically scaled the video to appropriate sizes.
 
 - [bc][1] (A calculator capable of floats)
 - [coreutils][7] (Expected core utilities)
-- [devilspie2][2] (Execute actions on windows)
+- [devilspie2][2] (To execute actions on windows)
 - [ffmpeg][3] (Media file information)
 - [MPV][4] (Media player)
 - [sed][6] (A stream editor)
@@ -47,14 +47,16 @@ be two files that needs to be kept together for this script to work as intended.
 The `anibg` file is the main executable for this project, and it will source the
 `utils` file during runtime, so do not separate them.
 
-Inside the `examples` folder you will find a fully functional `.lua`
-configuration script (designed for MPV) which should be moved to the config
-folder of `devilspie2` (usually `~/.config/devilspie2`).
+Inside the `configs` folder you will find a fully functional `.lua`
+configuration script (designed for MPV) which should be moved to `devilspie2`'s
+config folder (usually `~/.config/devilspie2/`). This file will then be updated
+by this program with values that makes the MPV window cover the entire screen.
 
+### Include in $PATH
 After this, it should be possible to use this program by always providing the
 full path to the `anibg` file, but to be able to call the executable from
 anywhere on your system you can also add this script's `scr` folder to your
-PATH. This can be done by including the following line at the bottom of your
+$PATH. This can be done by including the following line at the bottom of your
 `~/.bashrc` or `~/.zshrc` file.
 
 ```
@@ -62,7 +64,7 @@ PATH="/path/to/anibg/src:${PATH}"
 ```
 
 By sourcing the edited file again, or just opening a new terminal, it should now
-be possible to use `anibg` without providing the full path.
+be possible to use `anibg` without having to provide the full path.
 
 
 ## Usage
@@ -93,63 +95,66 @@ anibg realative/path/to/video.mp4
 At the top of the main `anibg` script file there exist four settings that can
 be changed by the user, accompanied with what values are valid.
 
-### The `devilspie2` Config File (dp2_conf)
+### `dp2_conf` - `devilspie2`'s Config File
 This should be the path to the `.lua` configuration file that is used by
-`devilspie2` when resizing the video window of the MPV player. If your
-installation placed it somewhere else than `~/.config/devilspie2/` you can
-change it here.
+`devilspie2` when resizing the video window of the MPV player. If you decided
+to placed it somewhere else than `~/.config/devilspie2/` you can change it here.
 
-### Automatic Resolution (automaticResolution)
+### `automaticResolution` - Automatic Resolution
 If you have a special video file, that is not recognized correctly by the
 automatic resizing function, you can turn this functionality off and manually
 edit the `MPV Wallpape.lua` file. Succeeding runs of `anibg` will then not
-modify this config file, in order to not mess with your custom settings.
+perform any modifications to this config file, in order to not mess with your
+custom settings.
 
-### Hardware Decoder (hwDecoder)
-It is possible for MPV to use hardware accelerated decoding on systems where
-this option is available. There are a couple of different combinations to this,
-but I have categorized them into four groups for simplicity:
+### `hwDecoder` - Hardware Decoder
+It is possible for MPV to use hardware accelerated decoding, of the video
+stream, on systems where this option is available. There are a couple of
+different setting combinations available, to achieve the best performance on
+different systems, but I have categorized them into four common scenarios for
+simplicity:
 
 - `none` - Only use software decoding.
-    - This will be compatible with all systems that have a CPU, but will use
-      a lot of system resources
+    - This will be compatible with all systems that have a CPU, but it will use
+      a lot of system resources.
 - `auto` - Let MPV find best decoder.
     - MPV is usually quite good at finding what options are available, and will
       most likely be able to automatically configure the decoder correctly by
       itself.
-- `intel` - Use the Intel specific hardware decoder.
+- `intel` - Use the **Intel** specific hardware decoder.
     - If the screen you are using is getting its signal from the integrated
       Intel graphics you can use this option, as it will use the hardware
       decoders available in the graphics part of the CPU instead.
-- `nvidia` - Use the Nvidia specific hardware decoder.
+- `nvidia` - Use the **Nvidia** specific hardware decoder.
     - If you have a Nvidia graphics card you can use this setting, as it will
       offload all the decoding to your dedicated graphics card instead.
 
 If you are unsure what to use I would leave it at `auto`, but you can test the
-different settings wile monitoring your system to find the one with best
+different settings while monitoring your system to find the one with best
 performance. For more information about this you can check out all the
 [Hardware decoder options][9] on the MPV site.
 
-### Scaler Algorithm (scaler)
+### `scaler` - Scaler Algorithm
 When scaling an image, or a video feed, some kind of algorithm is needed in
 order to calculate what color all the pixels in the resized variant should be.
 This is a complicated problem that has a quality/speed tradeoff which you might
 need to take into consideration.
 
 A system using software decoding might not have the necessary computing power to
-use the scaler that will produce the best results, and using this will result
-in a low framerate. The slowest decoder will most likely require a dedicated
-graphics card for acceptable performance on higher resolution video feeds.
+use the scaler that will produce the best quality results, with the result that
+the video plays with a low framerate. The slowest decoder will most likely
+require a dedicated graphics card for acceptable performance on higher
+resolution video feeds.
 
-There are three options available, with slower equating to better quality.
+There are three options available, with slower equating to better quality:
 
-- `fast` - bilinear
+- `fast` - *bilinear*
     - Bilinear hardware texture filtering. This is the fastest scaler, but the
       quality is not that good. This is also MPV's default scaler for
       compatibility reasons.
-- `medium` - spline36
+- `medium` - *spline36*
     - This one has quite good quality at moderate resource requirements.
-- `slow` - ewa_lanczossharp
+- `slow` - *ewa_lanczossharp*
     - This is a slightly sharpened version of another scaler called
       `ewa_lanczos`, and it is also using some additional pre-tuned parameters.
       If your hardware can run it, this is probably what you should use by
