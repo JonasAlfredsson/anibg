@@ -1,6 +1,6 @@
 #!/bin/bash
-# This file will be sourced by the main `anibg.sh` script, and here you will
-# find any helper functions that are used.
+# This file will be sourced by the main `anibg` script, and here you will find
+# all the helper functions that are used.
 
 # Depending on the locale of the shell, the `printf` command may fail when
 # rounding values since it get a "," instead of a "." as a decimal separator.
@@ -23,17 +23,57 @@ function warning () {
     echo "[WARN] $1"
 }
 
+function checkVideoFile () {
+    # Check so that we have been given a valid file to send to MPV later.
+    if [ -z "${video_file}" ]; then
+        info "No input file was provided. Exiting..."
+        exit 0;
+    elif [ ! -f "${video_file}" ]; then
+        warning "File '${video_file}' was not found. Exiting..."
+        exit 1;
+    else
+        debug "Targeting the file '${video_file}', with extension '${ext}'"
+    fi
+}
+
 function checkConfigPath () {
     # Sanitize the path of the devilspie2 config file a bit by expanding '~' if
     # it exists in beginning.
     dp2_conf="${dp2_conf/#\~/$HOME}"
 
     if [ ! -f "${dp2_conf}" ]; then
-        warning "The config file '${dp2_conf}' was not found! Exiting..."
+        warning "The config file '${dp2_conf}' was not found. Exiting..."
         exit 1;
     else
         debug "Found the config file '${dp2_conf}'"
     fi
+}
+
+function checkDevilspieStatus () {
+    # See if devilspie2 is already running, and start it if so is not the case.
+    if ! pgrep -x devilspie2 > /dev/null; then
+        info "Starting 'devilspie2'"
+        devilspie2 &
+    else
+        debug "'devilspie2' is already running"
+    fi
+}
+
+function pauseDevilspie () {
+    # Modifying the config file may cause devilspie2 to terminate itself if
+    # there aren't any other valid config files in its directory. To hinder
+    # this behavior we temporarily suspend its execution to give us time to
+    # modify the config file of interest.
+    debug "Suspending execution of devilspie2"
+    pids=`pgrep -x devilspie2`
+    kill -TSTP $pids
+}
+
+function resumeDevilspie () {
+    # Resuming execution of devilspie2, after it has been suspended.
+    debug "Resuming execution of devilspie2"
+    pids=`pgrep -x devilspie2`
+    kill -CONT $pids
 }
 
 function getVideoFileResolution () {
@@ -47,8 +87,8 @@ function isVideoRotated () {
     # Find out if the video file is rotated.
     debug "Determining rotation of the video file"
     videoFileRotation="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'rotate .*: \K[0-9]+' || ( echo "-1" )`"
-    # The appended echo statement is necessary since if `grep` can't find the
-    # string it will return an error and abort this whole script.
+    # The appended echo statement is necessary since if grep can't find the
+    # searched for string it will return an error and abort this whole script.
     if [ -1 = ${videoFileRotation} ]; then
         debug "Could not find info about rotation, defaulting to 0 degrees"
         videoFileRotation="0"
@@ -79,28 +119,32 @@ function getScreenResolution () {
 }
 
 function setWindowSize () {
-    # Edit the line in the devilspie2 config file that defines window size.
+    # Edit the line in the devilspie2 config file which defines window size.
+    pauseDevilspie
     debug "Setting MPV window size to ${resX}x${resY}"
     sed -i 's/^\([[:blank:]]*\)set_window_geometry2.*$/\1set_window_geometry2(0,0,'"${resX},${resY}"');/' "${dp2_conf}"
+    resumeDevilspie
 }
 
 function setWindowPosition () {
-    # Edit the line in the devilspie2 config file that defines window position.
+    # Edit the line in the devilspie2 config file which defines window position.
+    pauseDevilspie
     debug "Setting MPV window shift to (${shiftX},${shiftY})"
     sed -i 's/^\([[:blank:]]*\)set_window_position2.*$/\1set_window_position2('"${shiftX},${shiftY}"');/' "${dp2_conf}"
+    resumeDevilspie
 }
 
 function calculateFillEntireScreenScaling () {
     # Calculate the ratios between the screen's and the video_file's resolution
-    # in order to determine how the MPV window should be resized to allow the
-    # video to cover the entire screen.
+    # in order to determine how the MPV window should be resized so that the
+    # the video cover the entire screen.
     xDiff=`bc -l <<< ${screenResX}/${fileResX}`
     yDiff=`bc -l <<< ${screenResY}/${fileResY}`
     debug "Scaling difference is X:`printf '%.3f' ${xDiff}` and Y:`printf '%.3f' ${yDiff}`"
     # Compare and see which axis need to be scaled up the most in order to fill
     # the entire screen.
     x_scale_largest=$( bc <<< ${yDiff}'<'${xDiff} )
-    if [ ${x_scale_largest} = 1 ] ; then
+    if [ 1 = ${x_scale_largest} ] ; then
         # If the difference in the X-axis is the largest, scale after that.
         debug "Scaling based on the X-axis"
         resX=`bc <<< ${fileResX}*${xDiff}`
@@ -118,9 +162,9 @@ function calculateFillEntireScreenScaling () {
 }
 
 function calculateCenteringOfWindow () {
-    # If calculateFillEntireScreenScaling() was run before this, it might be
-    # necessary to shift where the top left corner of the window is placed, in
-    # order for the video to be centered in relation to the screen.
+    # If calculateFillEntireScreenScaling() has been run, it might be necessary
+    # to shift where the top left corner of the window is placed, in order for
+    # the video to be centered in relation to the screen.
     if [ ${x_scale_largest} = 1 ] ; then
         # If the difference in the X-axis is was the largest, shift the video
         # in the Y-direction since that will now be off center.
