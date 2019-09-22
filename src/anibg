@@ -87,7 +87,7 @@ case "${hwDecoder}" in
         ;;
     *)
         # Default to automatic detection.
-        warning "Unknown decoder option, defaulting to 'auto'"
+        warning "Unknown decoder option '${hwDecoder}', defaulting to 'auto'"
         mpv_cmd+=" --hwdec=auto"
         ;;
 esac
@@ -110,7 +110,7 @@ case "${scaler}" in
         ;;
     *)
         # Default for compatibility reasons.
-        warning "Unknown scaler option, defaulting to 'fast'"
+        warning "Unknown scaler option '${scaler}', defaulting to 'fast'"
         mpv_cmd+=" --scale=bilinear"
         ;;
 esac
