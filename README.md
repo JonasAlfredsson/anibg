@@ -1,4 +1,5 @@
 # anibg
+
 A script that will automatically resize a window of MPV to a resolution that
 will make it cover the entire computer screen, and then move this window to the
 same rendering layer as the desktop background image, in order to make it a
@@ -42,12 +43,12 @@ GitHub.
 git clone git@github.com:JonasAlfredsson/anibg.git
 ```
 
-You should be able to see two folders, and inside the `src` directory there will
+You should be able to see two folders, and inside the `src/` directory there will
 be two files that needs to be kept together for this script to work as intended.
 The `anibg` file is the main executable for this project, and it will source the
 `utils` file during runtime, so do not separate them.
 
-Inside the `configs` folder you will find a fully functional `.lua`
+Inside the `configs/` folder you will find a fully functional `.lua`
 configuration script (designed for MPV) which should be moved to `devilspie2`'s
 config folder (usually `~/.config/devilspie2/`). This file will then be updated
 by this program with values that makes the MPV window cover the entire screen.
@@ -55,7 +56,7 @@ by this program with values that makes the MPV window cover the entire screen.
 ### Include in $PATH
 After this, it should be possible to use this program by always providing the
 full path to the `anibg` file, but to be able to call the executable from
-anywhere on your system you can also add this script's `scr` folder to your
+anywhere on your system you can also add this script's `scr/` folder to your
 $PATH. This can be done by including the following line at the bottom of your
 `~/.bashrc` or `~/.zshrc` file.
 
@@ -137,12 +138,12 @@ performance. For more information about this you can check out all the
 ### `scaler` - Scaler Algorithm
 When scaling an image, or a video feed, some kind of algorithm is needed in
 order to calculate what color all the pixels in the resized variant should be.
-This is a complicated problem that has a quality/speed tradeoff which you might
+This is a complicated problem that has a quality/speed trade-off which you might
 need to take into consideration.
 
 A system using software decoding might not have the necessary computing power to
 use the scaler that will produce the best quality results, with the result that
-the video plays with a low framerate. The slowest decoder will most likely
+the video plays with a low frame rate. The slowest decoder will most likely
 require a dedicated graphics card for acceptable performance on higher
 resolution video feeds.
 
