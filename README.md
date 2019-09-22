@@ -56,7 +56,7 @@ by this program with values that makes the MPV window cover the entire screen.
 ### Include in $PATH
 After this, it should be possible to use this program by always providing the
 full path to the `anibg` file, but to be able to call the executable from
-anywhere on your system you can also add this script's `scr/` folder to your
+anywhere on your system you can also add this repository's `scr/` folder to your
 $PATH. This can be done by including the following line at the bottom of your
 `~/.bashrc` or `~/.zshrc` file.
 
@@ -99,12 +99,12 @@ be changed by the user, accompanied with what values are valid.
 ### `dp2_conf` - `devilspie2`'s Config File
 This should be the path to the `.lua` configuration file that is used by
 `devilspie2` when resizing the video window of the MPV player. If you decided
-to placed it somewhere else than `~/.config/devilspie2/` you can change it here.
+to place it somewhere else than `~/.config/devilspie2/` you can change it here.
 
 ### `automaticResolution` - Automatic Resolution
 If you have a special video file, that is not recognized correctly by the
 automatic resizing function, you can turn this functionality off and manually
-edit the `MPV Wallpape.lua` file. Succeeding runs of `anibg` will then not
+edit the `MPV Wallpaper.lua` file. Succeeding runs of `anibg` will then not
 perform any modifications to this config file, in order to not mess with your
 custom settings.
 
@@ -142,12 +142,13 @@ This is a complicated problem that has a quality/speed trade-off which you might
 need to take into consideration.
 
 A system using software decoding might not have the necessary computing power to
-use the scaler that will produce the best quality results, with the result that
-the video plays with a low frame rate. The slowest decoder will most likely
+use the scaler that will produce the best quality results, and the video will
+play with a low frame rate as a result. The slowest decoder will most likely
 require a dedicated graphics card for acceptable performance on higher
 resolution video feeds.
 
-There are three options available, with slower equating to better quality:
+For this script I have exposed three options for scalers (MPV has more
+available), with slower equating to better quality:
 
 - `fast` - *bilinear*
     - Bilinear hardware texture filtering. This is the fastest scaler, but the
@@ -173,9 +174,10 @@ content to use as a living background, and so it the YouTube channel
 [AA VFX][17].
 
 Furthermore, there are actually quite a few commands available for `devilspie2`
-that can be used to manipulate windows on the system. The example here with MPV
-player as a background image is just one option, and much more advanced actions
-can be made if you want. More information can be found in the [manual][13].
+which can be used to manipulate windows on the system. The example here with
+MPV as a background image is just one option, and much more advanced actions
+can be performed if you take your time and read the instructions. More
+information can be found in the [manual][13].
 
 
 
