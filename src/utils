@@ -39,10 +39,33 @@ function checkConfigPath () {
 function getVideoFileResolution () {
     # Gets the resolution of the "video_file" as a sting like: 1920x1021
     fileResolution="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
-    # Extract the horizontal and vertical components.
-    fileResX="`echo ${fileResolution} | cut -d 'x' -f 1`"
-    fileResY="`echo ${fileResolution} | cut -d 'x' -f 2`"
+    isVideoRotated
     debug "File resolution: ${fileResX}x${fileResY}"
+}
+
+function isVideoRotated () {
+    # Find out if the video file is rotated.
+    debug "Determining rotation of the video file"
+    videoFileRotation="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'rotate .*: \K[0-9]+' || ( echo "-1" )`"
+    # The appended echo statement is necessary since if `grep` can't find the
+    # string it will return an error and abort this whole script.
+    if [ -1 = ${videoFileRotation} ]; then
+        debug "Could not find info about rotation, defaulting to 0 degrees"
+        videoFileRotation="0"
+    fi
+
+    # Extract the horizontal and vertical components.
+    if  [ 90 = ${videoFileRotation} ] || [ 270 = ${videoFileRotation} ]; then
+        # The video file is rotated either 90 or 270 degrees, so for correct
+        # calculations we need to swap places of the X and Y resolution values.
+        debug "Video file is oriented vertically (90 or 270 degrees)"
+        fileResX="`echo ${fileResolution} | cut -d 'x' -f 2`"
+        fileResY="`echo ${fileResolution} | cut -d 'x' -f 1`"
+    else
+        # Normal rotation, no special actions taken.
+        fileResX="`echo ${fileResolution} | cut -d 'x' -f 1`"
+        fileResY="`echo ${fileResolution} | cut -d 'x' -f 2`"
+    fi
 }
 
 function getScreenResolution () {
@@ -76,7 +99,7 @@ function calculateFillEntireScreenScaling () {
     debug "Scaling difference is X:`printf '%.3f' ${xDiff}` and Y:`printf '%.3f' ${yDiff}`"
     # Compare and see which axis need to be scaled up the most in order to fill
     # the entire screen.
-    x_scale_largest=$( bc <<<  ${yDiff}'<'${xDiff} )
+    x_scale_largest=$( bc <<< ${yDiff}'<'${xDiff} )
     if [ ${x_scale_largest} = 1 ] ; then
         # If the difference in the X-axis is the largest, scale after that.
         debug "Scaling based on the X-axis"
