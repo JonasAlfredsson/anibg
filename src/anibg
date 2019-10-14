@@ -55,8 +55,13 @@ else
 fi
 
 # Construct the desired call to MPV to play the video file.
-mpv_cmd="nohup" # Ignore the HUP (hangup) signal.
+if [ 1 != ${DEBUG} ]; then
+    mpv_cmd="nohup" # Ignore the HUP (hangup) signal.
+fi
 mpv_cmd+=" mpv '${video_file}'" # Give MPV the video file.
+if [ 1 = ${DEBUG} ]; then
+    mpv_cmd+=" --msg-level=all=v" # Increse verbosity of MPV output.
+fi
 mpv_cmd+=" --no-audio" # Disable audio.
 mpv_cmd+=" --loop" # Make the video file loop for all eternity.
 mpv_cmd+=" --no-input-default-bindings" # Disable any key bindings used by MPV.
@@ -114,8 +119,10 @@ case "${scaler}" in
         mpv_cmd+=" --scale=bilinear"
         ;;
 esac
-mpv_cmd+=" >/dev/null 2>&1" # Redirect any output.
-mpv_cmd+=" &" # Detach from this script.
+if [ 1 != ${DEBUG} ]; then
+    mpv_cmd+=" >/dev/null 2>&1" # Redirect any output.
+    mpv_cmd+=" &" # Detach from this script.
+fi
 
 # Execute command
 debug "Full MPV command: '${mpv_cmd}'"
