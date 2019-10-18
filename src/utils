@@ -61,23 +61,6 @@ function checkDevilspieStatus () {
     fi
 }
 
-function pauseDevilspie () {
-    # Modifying the config file may cause devilspie2 to terminate itself if
-    # there aren't any other valid config files in its directory. To hinder
-    # this behavior we temporarily suspend its execution to give us time to
-    # modify the config file of interest.
-    debug "Suspending execution of devilspie2"
-    pids=`pgrep -x devilspie2`
-    kill -TSTP $pids
-}
-
-function resumeDevilspie () {
-    # Resuming execution of devilspie2, after it has been suspended.
-    debug "Resuming execution of devilspie2"
-    pids=`pgrep -x devilspie2`
-    kill -CONT $pids
-}
-
 function getVideoFileResolution () {
     # Gets the resolution of the "video_file" as a sting like: 1920x1021
     fileResolution="`ffprobe "${video_file}" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
@@ -122,18 +105,14 @@ function getScreenResolution () {
 
 function setWindowSize () {
     # Edit the line in the devilspie2 config file which defines window size.
-    pauseDevilspie
     debug "Setting MPV window size to ${resX}x${resY}"
     sed -i 's/^\([[:blank:]]*\)set_window_geometry2.*$/\1set_window_geometry2(0,0,'"${resX},${resY}"');/' "${dp2_conf}"
-    resumeDevilspie
 }
 
 function setWindowPosition () {
     # Edit the line in the devilspie2 config file which defines window position.
-    pauseDevilspie
     debug "Setting MPV window shift to (${shiftX},${shiftY})"
     sed -i 's/^\([[:blank:]]*\)set_window_position2.*$/\1set_window_position2('"${shiftX},${shiftY}"');/' "${dp2_conf}"
-    resumeDevilspie
 }
 
 function calculateFillEntireScreenScaling () {
