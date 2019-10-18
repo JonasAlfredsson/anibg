@@ -177,8 +177,8 @@ which one works best on your system. More information can be found in the
 ## Resources
 
 The subreddit [LivingBackgrounds][16] is quite nice if you are looking for
-content to use as a living background, and so it the YouTube channel
-[AA VFX][17]. [Beeple Crap][21] has also some really nice animations, but you
+content to use as a living background, and so is the [AA VFX][17] YouTube
+channel. [Beeple Crap][21] has also some really nice animations, but you
 usually have to remove a couple of frames from the videos to have them loop
 seamlessly.
 
