@@ -178,13 +178,22 @@ which one works best on your system. More information can be found in the
 
 The subreddit [LivingBackgrounds][16] is quite nice if you are looking for
 content to use as a living background, and so it the YouTube channel
-[AA VFX][17].
+[AA VFX][17]. [Beeple Crap][21] has also some really nice animations, but you
+usually have to remove a couple of frames from the videos to have them loop
+seamlessly.
 
 Furthermore, there are actually quite a few commands available for `devilspie2`
 which can be used to manipulate windows on the system. The example here with
 MPV as a background image is just one option, and much more advanced actions
 can be performed if you take your time and read the instructions. More
 information can be found in the [manual][13].
+
+Other projects which I have looked at during my exploration into this area are
+[wallama-paper][18], [xwinwrap][19] and [SmartVideoWallpaper][20]. I didn't
+feel like they were right for me, which is why I wrote my own script.
+However, they are all worth a look before you decide which one you want to use.
+
+
 
 
 
@@ -205,3 +214,7 @@ information can be found in the [manual][13].
 [15]: https://old.reddit.com/user/waicool20
 [16]: https://old.reddit.com/r/LivingBackgrounds/
 [17]: https://www.youtube.com/user/dvdangor2011/videos
+[18]: https://github.com/Aaahh/wallama-paper
+[19]: https://github.com/ujjwal96/xwinwrap
+[20]: https://github.com/adhec/plasma_tweaks/tree/master/SmartVideoWallpaper
+[21]: https://www.beeple-crap.com/
