@@ -43,21 +43,28 @@ GitHub.
 git clone git@github.com:JonasAlfredsson/anibg.git
 ```
 
-You should be able to see two folders, and inside the `src/` directory there will
-be two files that needs to be kept together for this script to work as intended.
-The `anibg` file is the main executable for this project, and it will source the
-`utils` file during runtime, so do not separate them.
+You should now be able to see two folders, and inside the `src/` directory there
+will be two files that needs to be kept together for this script to work as
+intended. The `anibg` file is the main executable for this project, and it will
+source the `utils` file during runtime, so do not separate them.
 
-Inside the `configs/` folder you will find a fully functional `.lua`
-configuration script (designed for MPV) which should be moved to `devilspie2`'s
-config folder (usually `~/.config/devilspie2/`). This file will then be updated
-by this program with values that makes the MPV window cover the entire screen.
+Inside the `configs/` folder you will find two `.lua` configuration scripts
+which should be moved to `devilspie2`'s config folder (usually
+`~/.config/devilspie2/`). The file called "`MPV Wallpaper.lua`" will then be
+updated by this program with values that makes the MPV window cover the entire
+screen. If the installation path is different it is important to update the
+corresponding [variable](#dp2_conf---devilspie2s-config-file) at the top of the
+`anibg` script.
 
-### Include in $PATH
+The other `.lua` file is just an empty placeholder to hinder `devilspie2` from
+exiting with an error if it reads the real file while it is being edited. More
+info about this problem can be found inside the file.
+
+### Include in `$PATH`
 After this, it should be possible to use this program by always providing the
 full path to the `anibg` file, but to be able to call the executable from
 anywhere on your system you can also add this repository's `scr/` folder to your
-$PATH. This can be done by including the following line at the bottom of your
+`$PATH`. This can be done by including the following line at the bottom of your
 `~/.bashrc` or `~/.zshrc` file.
 
 ```
