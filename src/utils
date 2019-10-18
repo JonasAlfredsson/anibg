@@ -59,6 +59,8 @@ function checkDevilspieStatus () {
     else
         debug "'devilspie2' is already running"
     fi
+    # Have a really short pause here for it to read the config file.
+    sleep 0.1
 }
 
 function getVideoFileResolution () {

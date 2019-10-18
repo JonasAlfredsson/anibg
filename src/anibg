@@ -43,9 +43,6 @@ checkVideoFile
 # Verify that the devilspie2 config file actually exist.
 checkConfigPath
 
-# Check if devilspie2 is running, and start it if so is not the case.
-checkDevilspieStatus
-
 # If true, then calculate the best resolution and position for the MPV window.
 if [ "${automaticResolution}" = "true" ]; then
     info "Automatic resolution is enabled"
@@ -123,6 +120,9 @@ if [ 1 != ${DEBUG} ]; then
     mpv_cmd+=" >/dev/null 2>&1" # Redirect any output.
     mpv_cmd+=" &" # Detach from this script.
 fi
+
+# Check if devilspie2 is running, and start it if so is not the case.
+checkDevilspieStatus
 
 # Execute command
 debug "Full MPV command: '${mpv_cmd}'"
