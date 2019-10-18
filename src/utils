@@ -32,6 +32,8 @@ function checkVideoFile () {
         warning "File '${video_file}' was not found. Exiting..."
         exit 1;
     else
+        # See if it is a file that can be read by ffmpeg.
+        ffprobe -loglevel error "${video_file}"
         debug "Targeting the file '${video_file}', with extension '${ext}'"
     fi
 }
@@ -78,7 +80,7 @@ function resumeDevilspie () {
 
 function getVideoFileResolution () {
     # Gets the resolution of the "video_file" as a sting like: 1920x1021
-    fileResolution="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
+    fileResolution="`ffprobe "${video_file}" 2>&1 | grep -oP 'Stream .*, \K[0-9]+x[0-9]+'`"
     isVideoRotated
     debug "File resolution: ${fileResX}x${fileResY}"
 }
@@ -86,7 +88,7 @@ function getVideoFileResolution () {
 function isVideoRotated () {
     # Find out if the video file is rotated.
     debug "Determining rotation of the video file"
-    videoFileRotation="`ffmpeg -i "${video_file}" 2>&1 | grep -oP 'rotate .*: \K[0-9]+' || ( echo "-1" )`"
+    videoFileRotation="`ffprobe "${video_file}" 2>&1 | grep -oP 'rotate .*: \K[0-9]+' || ( echo "-1" )`"
     # The appended echo statement is necessary since if grep can't find the
     # searched for string it will return an error and abort this whole script.
     if [ -1 = ${videoFileRotation} ]; then

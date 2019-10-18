@@ -21,7 +21,7 @@ automatically scaled the video to appropriate sizes.
 - [bc][1] (A calculator capable of floats)
 - [coreutils][7] (Expected core utilities)
 - [devilspie2][2] (To execute actions on windows)
-- [ffmpeg][3] (Media file information)
+- [ffmpeg/ffprobe][3] (Media file information)
 - [MPV][4] (Media player)
 - [sed][6] (A stream editor)
 - [xdpyinfo][5] (Screen information [for X])
